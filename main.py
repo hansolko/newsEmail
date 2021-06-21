@@ -35,8 +35,62 @@ def send_mail(to, subject, content, atch=[]):
     # 메일 발송
     new_Mail.Send()
 
-# 크롤링 함수
-def search(keyword):
+# 구글 크롤링 함수
+def g_search(keyword, cnt):
+    # 옵션 생성
+    options = webdriver.ChromeOptions()
+    # 창 숨기는 옵션 추가
+    options.add_argument("headless")
+    driver = webdriver.Chrome('C:/Users/LDCC/chromedriver.exe', options = options)
+    # driver = webdriver.Chrome('C:/Users/LDCC/chromedriver.exe')
+    driver.implicitly_wait(5)
+
+    site = "https://www.google.com/search?q="+keyword+"&tbm=nws&sxsrf=ALeKk008u5T6jS5l0jLsN25hbj3J7Z0dvQ:1624256599096&source=lnt&tbs=qdr:d&sa=X&ved=2ahUKEwjRqPOsi6jxAhV4yosBHbRfAUUQpwV6BAgHECQ&biw=1920&bih=937&dpr=1"
+    driver.get(site)
+    req = driver.page_source
+    soup = BeautifulSoup(req, 'html.parser')
+
+    try:
+        # wb = Workbook()
+        # news = wb.active
+        # news.title = "news"
+        # news.append(["제목", "내용", "링크", "출처", "썸네일"])
+
+        # 리스트 형태로 append (엑셀 파일 만들기 위해)
+        news = []
+        for i in range(cnt):
+            source = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "#rso > div:nth-child("+str(i+1)+") > g-card > div > div > div.dbsr > a > div > div.hI5pFf > div.XTjFC.WF4CUc"))
+            )
+
+            source_time = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "#rso > div:nth-child("+str(i+1)+") > g-card > div > div > div.dbsr > a > div > div.hI5pFf > div.yJHHTd > div.wxp1Sb > span > span > span"))
+            )
+
+            title = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "#rso > div:nth-child("+str(i+1)+") > g-card > div > div > div.dbsr > a > div > div.hI5pFf > div.JheGif.nDgy9d"))
+            )
+
+            url = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "#rso > div:nth-child("+str(i+1)+") > g-card > div > div > div.dbsr > a"))
+            )
+
+            content = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "#rso > div:nth-child("+str(i+1)+") > g-card > div > div > div.dbsr > a > div > div.hI5pFf > div.yJHHTd > div.Y3v8qd"))
+            )
+
+            news.append([title.text, content.text, url.get_attribute("href"), source.text + " " + source_time.text])
+
+        # list to dataframe
+        news_df = pd.DataFrame(news, columns = ["title", "content", "url", "source"])
+
+        return news_df
+
+    finally:
+        driver.quit()
+
+# 네이버 크롤링 함수
+def n_search(keyword, cnt):
     # 옵션 생성
     options = webdriver.ChromeOptions()
     # 창 숨기는 옵션 추가
@@ -66,7 +120,11 @@ def search(keyword):
 
         # 리스트 형태로 append (엑셀 파일 만들기 위해)
         news = []
-        for i in range(len(sources)):
+        for i in range(cnt):
+            if "네이버뉴스" in sources[i].text:
+                news.append([titles[i].text, contents[i].text, titles[i].get_attribute("href"), sources[i].text[:-5], imgs[i].get_attribute("src")])
+                continue
+
             news.append([titles[i].text, contents[i].text, titles[i].get_attribute("href"), sources[i].text, imgs[i].get_attribute("src")])
 
         # list to dataframe
@@ -78,32 +136,96 @@ def search(keyword):
         driver.quit()
         # wb.save(filename='news.xlsx')
 
-# img_folder_path = 'C:/Users/LDCC/data_scientist/imgs'  # 이미지 저장 폴더
-#
-# if not os.path.isdir(img_folder_path):  # 없으면 새로 생성
-#     os.mkdir(img_folder_path)
-#
-# for index, link in enumerate(img_url):           #리스트에 있는 원소만큼 반복, 인덱스는 index에, 원소들은 link를 통해 접근 가능
-#     start = link.rfind('.')         #.을 시작으로
-#     end = link.rfind('?')           #?를 끝으로
-#     filetype = link[start:end]      #확장자명을 잘라서 filetype변수에 저장 (ex -> .jpg)
-#     urlretrieve(link, 'C:/Users/LDCC/data_scientist/imgs/{}.jpg'.format(index))        #link에서 이미지 다운로드, './imgs/'에 파일명은 index와 확장자명으로
+
+# 다음 크롤링 함수
+def d_search(keyword, cnt):
+    # 옵션 생성
+    options = webdriver.ChromeOptions()
+    # 창 숨기는 옵션 추가
+    options.add_argument("headless")
+    driver = webdriver.Chrome('C:/Users/LDCC/chromedriver.exe', options = options)
+    # driver = webdriver.Chrome('C:/Users/LDCC/chromedriver.exe')
+    driver.implicitly_wait(5)
+
+    site = "https://search.daum.net/search?w=news&nil_search=btn&DA=STC&enc=utf8&cluster=y&cluster_page=1&q="+str(keyword)+"&period=d&sd=20210620172106&ed=20210621172106"
+    driver.get(site)
+    req = driver.page_source
+    soup = BeautifulSoup(req, 'html.parser')
+
+    try:
+        # 리스트 형태로 append (엑셀 파일 만들기 위해)
+        news = []
+        for i in range(cnt):
+            source = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, '//*[@id="clusterResultUL"]/li['+str(i+1)+']/div[2]/div/span[1]'))
+            )
+
+            title = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, '//*[@id="clusterResultUL"]/li['+str(i+1)+']/div[2]/div/div[1]/a'))
+            )
+
+            content = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, '//*[@id="clusterResultUL"]/li['+str(i+1)+']/div[2]/div/p'))
+            )
+
+            news.append([title.text, content.text, title.get_attribute("href"), source.text])
+
+        # list to dataframe
+        news_df = pd.DataFrame(news, columns = ["title", "content", "url", "source"])
+
+        return news_df
+
+    finally:
+        driver.quit()
+
 
 # 실행 코드
 if __name__ == "__main__":
-    news_df = search(keyword="롯데")      # "title", "content", "url", "source", "thumbnail"
+    keyword = "롯데"
+    cnt = 3
+
+    g_news_df = g_search(keyword = keyword, cnt = cnt)  # "title", "content", "url", "source"
+    n_news_df = n_search(keyword = keyword, cnt = cnt)      # "title", "content", "url", "source"
+    d_news_df = d_search(keyword = keyword, cnt = cnt)      # "title", "content", "url", "source"
 
     to = "hansol.ko@lotte.net"
     subject = "[정보] 롯데 관련 NEWS " + "(20" + datetime.today().strftime("%y.%m.%d") + ")"
-    content = ""
-    for i in range(len(news_df)):
-        cont = """
-        <h1>{}</h1>
+    g_content = "<h1>[구글 뉴스]</h1>"
+    n_content = "<h1>[네이버 뉴스]</h1>"
+    d_content = "<h1>[다음 뉴스]</h1>"
+
+    for i in range(3):
+        g_cont = """
+        <h2>{}</h2>
         <blockquote><small>{}</small></blockquote>
         <p>{}</p>
         <p><em>출처</em> : {}</p>
         <hr>
-        """.format(news_df["title"][i], news_df["source"][i], news_df["content"][i], news_df["url"][i])
-        content += cont
+        """.format(g_news_df["title"][i], g_news_df["source"][i], g_news_df["content"][i], g_news_df["url"][i])
+        g_content += g_cont
 
-    send_mail(to, subject, content)
+    for i in range(3):
+        n_cont = """
+        <h2>{}</h2>
+        <blockquote><small>{}</small></blockquote>
+        <p>{}</p>
+        <p><em>출처</em> : {}</p>
+        <hr>
+        """.format(n_news_df["title"][i], n_news_df["source"][i], n_news_df["content"][i], n_news_df["url"][i])
+        n_content += n_cont
+
+    for i in range(3):
+        d_cont = """
+        <h2>{}</h2>
+        <blockquote><small>{}</small></blockquote>
+        <p>{}</p>
+        <p><em>출처</em> : {}</p>
+        <hr>
+        """.format(d_news_df["title"][i], d_news_df["source"][i], d_news_df["content"][i], d_news_df["url"][i])
+        d_content += d_cont
+
+    # 3개 사이트에서 긁은 내용 합치기
+    final_content = g_content + n_content + d_content
+
+    # 구글, 네이버, 다음 기사 합쳐서 메일 보내기 (1일 이내 최신 기사)
+    send_mail(to, subject, final_content)
