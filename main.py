@@ -188,7 +188,7 @@ if __name__ == "__main__":
     n_news_df = n_search(keyword = keyword, cnt = cnt)      # "title", "content", "url", "source"
     d_news_df = d_search(keyword = keyword, cnt = cnt)      # "title", "content", "url", "source"
 
-    to = "hansol.ko@lotte.net"
+    to = ["hansol.ko@lotte.net", "hyereen.kong@lotte.net"]
     subject = "[정보] 롯데 관련 NEWS " + "(20" + datetime.today().strftime("%y.%m.%d") + ")"
     g_content = "<h1>[구글 뉴스]</h1>"
     n_content = "<h1>[네이버 뉴스]</h1>"
@@ -224,8 +224,9 @@ if __name__ == "__main__":
         """.format(d_news_df["title"][i], d_news_df["source"][i], d_news_df["content"][i], d_news_df["url"][i])
         d_content += d_cont
 
-    # 3개 사이트에서 긁은 내용 합치기
+    # 구글, 네이버, 다음 합치기
     final_content = g_content + n_content + d_content
 
     # 구글, 네이버, 다음 기사 합쳐서 메일 보내기 (1일 이내 최신 기사)
-    send_mail(to, subject, final_content)
+    for t in to:
+        send_mail(t, subject, final_content)
