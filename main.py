@@ -157,15 +157,15 @@ def d_search(keyword, cnt):
         news = []
         for i in range(cnt):
             source = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="clusterResultUL"]/li['+str(i+1)+']/div[2]/div/span[1]'))
+                EC.presence_of_element_located((By.XPATH, '//*[@id="newsColl"]/div[1]/ul/li['+str(i+1)+']/div[2]/span[1]'))
             )
 
             title = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="clusterResultUL"]/li['+str(i+1)+']/div[2]/div/div[1]/a'))
+                EC.presence_of_element_located((By.XPATH, '//*[@id="newsColl"]/div[1]/ul/li['+str(i+1)+']/div[2]/a'))
             )
 
             content = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="clusterResultUL"]/li['+str(i+1)+']/div[2]/div/p'))
+                EC.presence_of_element_located((By.XPATH, '//*[@id="newsColl"]/div[1]/ul/li['+str(i+1)+']/div[2]/p[2]'))
             )
 
             news.append([title.text, content.text, title.get_attribute("href"), source.text])
@@ -188,13 +188,14 @@ if __name__ == "__main__":
     n_news_df = n_search(keyword = keyword, cnt = cnt)      # "title", "content", "url", "source"
     d_news_df = d_search(keyword = keyword, cnt = cnt)      # "title", "content", "url", "source"
 
-    to = ["hansol.ko@lotte.net", "hyereen.kong@lotte.net"]
+    to = ["hansol.ko@lotte.net"]
+    # to = ["hansol.ko@lotte.net", "hyereen.kong@lotte.net"]
     subject = "[정보] 롯데 관련 NEWS " + "(20" + datetime.today().strftime("%y.%m.%d") + ")"
     g_content = "<h1>[구글 뉴스]</h1>"
     n_content = "<h1>[네이버 뉴스]</h1>"
     d_content = "<h1>[다음 뉴스]</h1>"
 
-    for i in range(3):
+    for i in range(cnt):
         g_cont = """
         <h2>{}</h2>
         <blockquote><small>{}</small></blockquote>
@@ -204,7 +205,7 @@ if __name__ == "__main__":
         """.format(g_news_df["title"][i], g_news_df["source"][i], g_news_df["content"][i], g_news_df["url"][i])
         g_content += g_cont
 
-    for i in range(3):
+    for i in range(cnt):
         n_cont = """
         <h2>{}</h2>
         <blockquote><small>{}</small></blockquote>
@@ -214,7 +215,7 @@ if __name__ == "__main__":
         """.format(n_news_df["title"][i], n_news_df["source"][i], n_news_df["content"][i], n_news_df["url"][i])
         n_content += n_cont
 
-    for i in range(3):
+    for i in range(cnt):
         d_cont = """
         <h2>{}</h2>
         <blockquote><small>{}</small></blockquote>
