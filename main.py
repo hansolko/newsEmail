@@ -190,7 +190,7 @@ if __name__ == "__main__":
 
     to = ["hansol.ko@lotte.net"]
     # to = ["hansol.ko@lotte.net", "hyereen.kong@lotte.net"]
-    subject = "[정보] 롯데 관련 NEWS " + "(20" + datetime.today().strftime("%y.%m.%d") + ")"
+    subject = "[정보공유] 롯데 관련 NEWS " + "(20" + datetime.today().strftime("%y.%m.%d") + ")"
     g_content = "<h1>[구글 뉴스]</h1>"
     n_content = "<h1>[네이버 뉴스]</h1>"
     d_content = "<h1>[다음 뉴스]</h1>"
